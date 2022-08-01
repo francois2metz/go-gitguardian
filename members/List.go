@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type MembersListRole string
@@ -17,15 +19,16 @@ const (
 	Restricted MembersListRole = "restricted"
 )
 
-type ListOptions struct {
+type MembersListOptions struct {
 	Page    *int            `json:"page"`     // Page number.
 	PerPage *int            `json:"per_page"` // [ 1 .. 100 ]
 	Search  string          `json:"search"`   // Search members based on their name or email.
 	Role    MembersListRole `json:"role"`     // Filter members based on their role.
 }
 
-func (c *MembersClient) List(lo ListOptions) (*MembersResult, error) {
-	req, err := c.client.NewRequest("GET", "/v1/members", nil)
+func (c *MembersClient) List(lo MembersListOptions) (*MembersResult, error) {
+	endpoint := types.Endpoints["MembersList"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, nil)
 	if err != nil {
 		return nil, err
 	}

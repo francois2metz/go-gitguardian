@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type IncidentDeleteNoteResult struct {
@@ -24,7 +26,8 @@ type IncidentDeleteNoteResponse struct {
 }
 
 func (c *IncidentsClient) DeleteNote(IncidentId int, NoteId int) (*IncidentDeleteNoteResult, error) {
-	req, err := c.client.NewRequest("DELETE", fmt.Sprintf("/v1/incidents/secrets/%d/notes/%d", IncidentId, NoteId), nil)
+	endpoint := types.Endpoints["DeleteNote"]
+	req, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId, NoteId), nil)
 	if err != nil {
 		return nil, err
 	}

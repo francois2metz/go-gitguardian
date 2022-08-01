@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type InvitationsListResult struct {
@@ -19,13 +21,14 @@ type InvitationsListResponse struct {
 	CreatedAt string `json:"created_at"`
 }
 
-type ListOptions struct {
+type InvitationsListOptions struct {
 	Cursor  string `json:"cursor"`   // Pagination cursor.
 	PerPage *int   `json:"per_page"` // Number of items to list per page.	[ 1 .. 100 ]
 }
 
-func (c *InvitationsClient) List(lo ListOptions) (*InvitationsListResult, error) {
-	req, err := c.client.NewRequest("GET", "/v1/invitations", nil)
+func (c *InvitationsClient) List(lo InvitationsListOptions) (*InvitationsListResult, error) {
+	endpoint := types.Endpoints["InvitationsList"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, nil)
 	if err != nil {
 		return nil, err
 	}

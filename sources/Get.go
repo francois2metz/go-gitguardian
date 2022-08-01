@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 func (c *SourcesClient) Get(sourceId int) (*SourcesGetResult, error) {
-	req, err := c.client.NewRequest("GET", fmt.Sprintf("/v1/sources/%d", sourceId), nil)
+	endpoint := types.Endpoints["SourcesGet"]
+	req, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, sourceId), nil)
 	if err != nil {
 		return nil, err
 	}

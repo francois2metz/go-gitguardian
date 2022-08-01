@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type ShareSecretIncidentOptions struct {
@@ -33,7 +35,8 @@ func (c *IncidentsClient) ShareSecretIncident(IncidentId int, lo ShareSecretInci
 		return nil, err
 	}
 
-	r, err := c.client.NewRequest("POST", fmt.Sprintf("/v1/incidents/secrets/%d/share", IncidentId), b)
+	endpoint := types.Endpoints["ShareSecretIncident"]
+	r, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId), b)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type GrantAccessSecretIncidentOptions struct {
@@ -33,7 +35,8 @@ func (c *IncidentsClient) GrantAccessSecretIncident(IncidentId int, lo GrantAcce
 		return false, err
 	}
 
-	r, err := c.client.NewRequest("POST", fmt.Sprintf("/v1/incidents/secrets/%d/grant_access", IncidentId), b)
+	endpoint := types.Endpoints["GrantAccessSecretIncident"]
+	r, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId), b)
 	if err != nil {
 		return false, err
 	}

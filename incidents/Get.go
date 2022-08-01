@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type GetOptions struct {
@@ -12,7 +14,8 @@ type GetOptions struct {
 }
 
 func (c *IncidentsClient) Get(IncidentId int, lo GetOptions) (*IncidentGetResult, error) {
-	req, err := c.client.NewRequest("GET", fmt.Sprintf("/v1/incidents/secrets/%d", IncidentId), nil)
+	endpoint := types.Endpoints["GetSecretIncidents"]
+	req, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId), nil)
 	if err != nil {
 		return nil, err
 	}

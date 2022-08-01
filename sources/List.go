@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type SourcesListType string
@@ -23,7 +25,8 @@ type ListOptions struct {
 }
 
 func (c *SourcesClient) List(lo ListOptions) (*SourcesListResult, error) {
-	req, err := c.client.NewRequest("GET", "/v1/sources", nil)
+	endpoint := types.Endpoints["SourcesList"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, nil)
 	if err != nil {
 		return nil, err
 	}

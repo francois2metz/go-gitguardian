@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 func (c *StatusClient) Health() (*HealthResult, error) {
-	req, err := c.client.NewRequest("GET", "/v1/health", nil)
+	endpoint := types.Endpoints["Health"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, nil)
 	if err != nil {
 		return nil, err
 	}

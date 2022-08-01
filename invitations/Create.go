@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type InvitationsCreateResult struct {
@@ -40,7 +42,8 @@ func (c *InvitationsClient) Create(lo InvitationsCreateOptions) (*InvitationsCre
 		return nil, err
 	}
 
-	req, err := c.client.NewRequest("POST", "/v1/invitations", b)
+	endpoint := types.Endpoints["InvitationsCreate"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, b)
 	if err != nil {
 		return nil, err
 	}

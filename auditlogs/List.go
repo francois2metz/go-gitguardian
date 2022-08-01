@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type AuditLogsListResult struct {
@@ -39,7 +41,8 @@ type AuditLogsListOptions struct {
 }
 
 func (c *AuditLogsClient) List(lo AuditLogsListOptions) (*AuditLogsListResult, error) {
-	req, err := c.client.NewRequest("GET", "/v1/audit_logs", nil)
+	endpoint := types.Endpoints["AuditLogsList"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, nil)
 	if err != nil {
 		return nil, err
 	}

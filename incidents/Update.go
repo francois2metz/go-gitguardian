@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type Update struct {
@@ -11,7 +13,8 @@ type Update struct {
 }
 
 func (c *IncidentsClient) Update(IncidentId int, lo Update) (*IncidentGetResult, error) {
-	req, err := c.client.NewRequest("PATCH", fmt.Sprintf("/v1/incidents/secrets/%d", IncidentId), nil)
+	endpoint := types.Endpoints["UpdateSecretIncidents"]
+	req, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId), nil)
 	if err != nil {
 		return nil, err
 	}

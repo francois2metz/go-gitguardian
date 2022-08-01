@@ -1,0 +1,3605 @@
+{
+  "openapi": "3.0.3",
+  "servers": [
+    {
+      "url": "https://api.gitguardian.com"
+    }
+  ],
+  "info": {
+    "title": "GitGuardian API",
+    "version": "1.1.0",
+    "termsOfService": "https://www.gitguardian.com/legal-terms",
+    "license": {
+      "name": "GitGuardian",
+      "url": "https://www.gitguardian.com/legal-terms"
+    },
+    "x-logo": {
+      "url": "https://static.gitguardian.com/Logo-blue.png",
+      "altText": "GitGuardian"
+    },
+    "contact": {
+      "name": "GitGuardian",
+      "email": "support@gitguardian.com",
+      "url": "https://www.gitguardian.com"
+    },
+    "description": "\n# Introduction\n\nWhether you want to build a complete integration with your software development\nworkflow or simply want to test GitGuardian's policy break detection on any text content,\nyou can use our API.\n\n- The base url for the latest version is `api.gitguardian.com/v1` over `HTTPS`.\n- All data is sent and received as JSON by default.\n- All timestamps returned are ISO-8601 compliant, example:\n```python\n2020-03-16T04:46:00+00:00 # for date-time\n```\n\nGitGuardian supported wrappers:\n- Python: [**py-gitguardian**](https://github.com/GitGuardian/py-gitguardian)\n\nGitGuardian provides you with [**GitGuardian Shield**](https://github.com/GitGuardian/gg-shield),\na CLI application that uses the GitGuardian API through py-gitguardian\nto scan your files and detect potential secrets or issues in your code.\n\nThis CLI application can be used in many CIs (such as GitHub Actions, GitLab Pipelines, CircleCI,...)\nor as a pre-commit or pre-receive hook.\n\n# Authentication\n\nThe GitGuardian API uses API keys to authenticate requests.\n\nYou need to [create an account](https://dashboard.gitguardian.com/auth/signup) before getting started\nin order to get an API key.\n\nYour API key can be created and revoked from the\n[API section of your dashboard](https://dashboard.gitguardian.com/api).\n\nYour API key must kept private and should neither be embedded directly in the code nor versioned in Git.\n(Please do not push GitGuardian's API keys to public GitHub repositories ^^).\n\nBeware your API keys can expire and can be revoked.\n\nUse [/v1/health](#operation/health_check) to check the\nvalidity of your token if needed.\n\n```bash\ncurl -H \"Authorization: Token ${TOKEN}\" \\\n  https://api.gitguardian.com/v1/health\n```\n\n\n<!-- ReDoc-Inject: <security-definitions> -->\n"
+  },
+  "tags": [
+    {
+      "name": "Secret Incidents",
+      "description": "Manage incidents found by post-receive hooks on your GitGuardian Dashboard.\n"
+    },
+    {
+      "name": "Secret Occurrences",
+      "description": "Manage occurrences found by post-receive hooks on your GitGuardian Dashboard.\n"
+    },
+    {
+      "name": "Secret Incident Notes",
+      "description": "Manage notes on incidents found by post-receive hooks on your GitGuardian Dashboard.\n"
+    },
+    {
+      "name": "Invitations",
+      "description": "Manage workspace invitations.\n"
+    },
+    {
+      "name": "Sources",
+      "description": "Retrieve details on sources monitored by GitGuardian.\n"
+    },
+    {
+      "name": "Members",
+      "description": "Retrieve details about workspace members.\n"
+    },
+    {
+      "name": "Scan Methods",
+      "description": "Use GitGuardian's brain at your leisure.\n\nScanning API allows you to scan any content you want using GitGuardian's secrets detection algorithms.\n"
+    },
+    {
+      "name": "Quota",
+      "description": "Retrieve details about quota usage.\n"
+    },
+    {
+      "name": "Audit logs",
+      "description": "List of audit logs of the workspace.\n"
+    },
+    {
+      "name": "Status",
+      "description": "Check the status of the API and the overall system health.\n"
+    }
+  ],
+  "x-tagGroups": [
+    {
+      "name": "Incidents Management",
+      "tags": [
+        "Secret Incidents",
+        "Secret Occurrences",
+        "Secret Incident Notes"
+      ]
+    },
+    {
+      "name": "Perimeter Management",
+      "tags": [
+        "Sources"
+      ]
+    },
+    {
+      "name": "User Management",
+      "tags": [
+        "Members",
+        "Invitations"
+      ]
+    },
+    {
+      "name": "Secrets Scanning",
+      "tags": [
+        "Scan Methods",
+        "Quota"
+      ]
+    },
+    {
+      "name": "Audit Logs",
+      "tags": [
+        "Audit Logs"
+      ]
+    },
+    {
+      "name": "Other",
+      "tags": [
+        "Status"
+      ]
+    }
+  ],
+  "paths": {
+    "/v1/incidents/secrets": {
+      "get": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "list-incidents",
+        "summary": "List Secret Incidents",
+        "description": "List secret incidents detected by the GitGuardian dashboard.\nOccurrences are not returned in this route.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/date_before"
+          },
+          {
+            "$ref": "#/components/parameters/date_after"
+          },
+          {
+            "name": "assignee_email",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Incidents assigned to this email.",
+              "example": "eric@gitguardian.com"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/StatusEnum"
+                }
+              ],
+              "description": "Incidents with the following status."
+            }
+          },
+          {
+            "name": "severity",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SeverityEnum"
+                }
+              ],
+              "description": "Filter incidents by severity."
+            }
+          },
+          {
+            "name": "validity",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ValidityEnum"
+                }
+              ],
+              "description": "Secrets with the following validity."
+            }
+          },
+          {
+            "name": "tags",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Incidents with one of the following tags. Use `NONE` if you want to filter incidents with no tags.",
+              "example": "FROM_HISTORICAL_SCAN,SENSITIVE_FILE",
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TagFilterEnum"
+                }
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret Incident List",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/incidents/secrets?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/incidents/secrets?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              },
+              "X-Next-Page": {
+                "$ref": "#/components/headers/xNextPage"
+              },
+              "X-Page": {
+                "$ref": "#/components/headers/xPage"
+              },
+              "X-Prev-Page": {
+                "$ref": "#/components/headers/xPrevPage"
+              },
+              "X-Total": {
+                "$ref": "#/components/headers/xTotal"
+              },
+              "X-Total-Pages": {
+                "$ref": "#/components/headers/xTotalPages"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}": {
+      "get": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "retrieve-incidents",
+        "summary": "Retrieve Secret Incident",
+        "description": "Retrieve secret incident detected by the GitGuardian dashboard with\nits occurrences.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          },
+          {
+            "name": "with_occurrences",
+            "in": "query",
+            "description": "Retrieve a number of occurrences of this incident.",
+            "schema": {
+              "type": "integer",
+              "default": 20,
+              "minimum": 0,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incident"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "update-secret-incident",
+        "summary": "Update secret incident",
+        "description": "Update a secret incident\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Update Request",
+                "properties": {
+                  "severity": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SeverityEnum"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details without occurrences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/assign": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "assign-incident",
+        "summary": "Assign Secret Incident",
+        "description": "Assign secret incident detected by the GitGuardian dashboard to a workspace member\nby email.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Assignee Request",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "eric@gitguardian.com",
+                    "description": "email of the member to assign. This parameter is mutually exclusive with `member_id`.\n"
+                  },
+                  "member_id": {
+                    "type": "number",
+                    "example": 4295,
+                    "description": "id of the member to assign. This parameter is mutually exclusive with `email`.\n"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details without occurrences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/unassign": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "unassign-incident",
+        "summary": "Unassign Secret Incident",
+        "description": "Unassign secret incident from a workspace member by email.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details without occurrences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/resolve": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "resolve-incident",
+        "summary": "Resolve Secret Incident",
+        "description": "Resolve a secret incident detected by the GitGuardian dashboard.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Resolve Request",
+                "required": [
+                  "secret_revoked"
+                ],
+                "properties": {
+                  "secret_revoked": {
+                    "type": "boolean",
+                    "example": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details without occurrences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/ignore": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "ignore-incident",
+        "summary": "Ignore Secret Incident",
+        "description": "Ignore a secret incident detected by the GitGuardian dashboard.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Ignore Request",
+                "required": [
+                  "ignore_reason"
+                ],
+                "properties": {
+                  "ignore_reason": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/SecretStatusEnum"
+                      }
+                    ],
+                    "example": "low_risk"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details without occurrences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/reopen": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "reopen-incident",
+        "summary": "Reopen Secret Incident",
+        "description": "Unresolve or Unignore a secret incident detected by the GitGuardian dashboard.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Secret Incident Details without occurrences.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentWithoutOccurrences"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/share": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "share-incident",
+        "summary": "Share a Secret Incident",
+        "description": "Share a secret incident by creating a public link.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Incident Share Request",
+                "properties": {
+                  "auto_healing": {
+                    "type": "boolean",
+                    "example": true,
+                    "default": false,
+                    "description": "Allow the developer to resolve or ignore through the share link"
+                  },
+                  "feedback_collection": {
+                    "type": "boolean",
+                    "example": true,
+                    "default": true,
+                    "description": "Allow the developer to submit their feedback through the share link"
+                  },
+                  "lifespan": {
+                    "type": "integer",
+                    "example": 720,
+                    "default": 0,
+                    "description": "Lifespan, in hours, of the share link. If 0 or unset, a default value will be applied based on the workspace settings."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Incident Sharing Details",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/unshare": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "unshare-incident",
+        "summary": "Unshare a Secret Incident",
+        "description": "Unshare a secret incident by revoking its public link.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The public link was revoked successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/grant_access": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "grant-access-incident",
+        "summary": "Grant Access to a Secret Incident",
+        "description": "Grant a restricted user access to a secret incident.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Grant Access Request",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "eric@gitguardian.com",
+                    "description": "Email address of a restricted user. This parameter is mutually exclusive with `member_id`."
+                  },
+                  "member_id": {
+                    "type": "number",
+                    "example": 1492,
+                    "description": "Member id of a restricted user. This parameter is mutually exclusive with `email`."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The access was granted successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/revoke_access": {
+      "post": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "revoke-access-incident",
+        "summary": "Revoke Access to a Secret Incident",
+        "description": "Revoke access of a restricted user to a secret incident.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Grant Access Request",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "eric@gitguardian.com",
+                    "description": "Email address of a restricted user. This parameter is mutually exclusive with `member_id`."
+                  },
+                  "member_id": {
+                    "type": "number",
+                    "example": 1492,
+                    "description": "Member id of a restricted user. This parameter is mutually exclusive with `email`."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "The access was revoked successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/notes": {
+      "get": {
+        "tags": [
+          "Secret Incident Notes"
+        ],
+        "operationId": "list-incident-notes",
+        "summary": "List Notes on a Secret Incident",
+        "description": "List comments left on a secret incident in chronological order.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Incident Note List",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/incidents/secrets/1/notes?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/incidents/secrets/1/notes?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              },
+              "X-Next-Page": {
+                "$ref": "#/components/headers/xNextPage"
+              },
+              "X-Page": {
+                "$ref": "#/components/headers/xPage"
+              },
+              "X-Prev-Page": {
+                "$ref": "#/components/headers/xPrevPage"
+              },
+              "X-Total": {
+                "$ref": "#/components/headers/xTotal"
+              },
+              "X-Total-Pages": {
+                "$ref": "#/components/headers/xTotalPages"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/incidentNote"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Secret Incident not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Secret Incident Notes"
+        ],
+        "operationId": "create-incident-note",
+        "summary": "Create a Secret Incident Note",
+        "description": "Add a comment on a secret incident.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Incident Note Request",
+                "properties": {
+                  "comment": {
+                    "type": "string",
+                    "example": "I revoked this secret",
+                    "description": "Content of the incident note"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "The note was created successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Secret Incident not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/notes/{note_id}": {
+      "patch": {
+        "tags": [
+          "Secret Incident Notes"
+        ],
+        "operationId": "update-incident-note",
+        "summary": "Update a Secret Incident Note",
+        "description": "Update an existing comment on a secret incident. Only incident notes\ncreated by the current API key can be updated.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          },
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "description": "The id of the incident note to update",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Incident Note Request",
+                "properties": {
+                  "comment": {
+                    "type": "string",
+                    "example": "I revoked this secret",
+                    "description": "Content of the incident note"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The note was updated successfully.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/incidentNote"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "You cannot update an Incident Note you that was not created by\nthe current API key.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Secret Incident or Incident Note not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Secret Incident Notes"
+        ],
+        "operationId": "delete-incident-note",
+        "summary": "Delete a Secret Incident Note",
+        "description": "Delete an existing comment on a secret incident. Only incident notes\ncreated by the current API key can be deleted.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          },
+          {
+            "name": "note_id",
+            "in": "path",
+            "required": true,
+            "description": "The id of the incident note to delete",
+            "schema": {
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The note was deleted successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "You cannot delete an Incident Note you that was not created by\nthe current API key.\n",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Secret Incident or Incident Note not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/incidents/secrets/{incident_id}/members": {
+      "get": {
+        "tags": [
+          "Secret Incidents"
+        ],
+        "operationId": "list-incident-members",
+        "summary": "List Members having access to a Secret Incident",
+        "description": "List all the members having access to a Secret Incident.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/incident_id"
+          },
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of members",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/incidents/secrets/1/members?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/incidents/secrets/1/members?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              },
+              "X-Next-Page": {
+                "$ref": "#/components/headers/xNextPage"
+              },
+              "X-Page": {
+                "$ref": "#/components/headers/xPage"
+              },
+              "X-Prev-Page": {
+                "$ref": "#/components/headers/xPrevPage"
+              },
+              "X-Total": {
+                "$ref": "#/components/headers/xTotal"
+              },
+              "X-Total-Pages": {
+                "$ref": "#/components/headers/xTotalPages"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/member"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "404": {
+            "description": "Secret Incident not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/occurrences/secrets": {
+      "get": {
+        "tags": [
+          "Secret Occurrences"
+        ],
+        "operationId": "list-occs",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/date_before"
+          },
+          {
+            "$ref": "#/components/parameters/date_after"
+          },
+          {
+            "name": "source_id",
+            "in": "query",
+            "description": "Filter on the source ID.",
+            "schema": {
+              "type": "integer",
+              "example": 5523
+            }
+          },
+          {
+            "name": "source_name",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Entries matching this source name search.",
+              "example": "gitguardian/test-repository"
+            }
+          },
+          {
+            "name": "incident_id",
+            "in": "query",
+            "description": "Filter by incident ID.",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "presence",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/PresenceEnum"
+                }
+              ],
+              "description": "Entries that have the following presence status."
+            }
+          },
+          {
+            "name": "author_name",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Entries matching this author name search.",
+              "minLength": 3,
+              "example": "John Doe"
+            }
+          },
+          {
+            "name": "author_info",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Entries matching this author email search.",
+              "minLength": 3,
+              "example": "john.doe@gitguardian.com"
+            }
+          }
+        ],
+        "summary": "List Secret Occurrences",
+        "description": "List occurrences of secrets in the monitored perimeter.\n",
+        "responses": {
+          "200": {
+            "description": "List occurrences",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/occurrences/secrets?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/occurrences/secrets?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              },
+              "X-Next-Page": {
+                "$ref": "#/components/headers/xNextPage"
+              },
+              "X-Page": {
+                "$ref": "#/components/headers/xPage"
+              },
+              "X-Prev-Page": {
+                "$ref": "#/components/headers/xPrevPage"
+              },
+              "X-Total": {
+                "$ref": "#/components/headers/xTotal"
+              },
+              "X-Total-Pages": {
+                "$ref": "#/components/headers/xTotalPages"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/occurrence"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/invitations": {
+      "get": {
+        "tags": [
+          "Invitations"
+        ],
+        "operationId": "list-invitations",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          }
+        ],
+        "summary": "List Workspace Invitations",
+        "description": "This endpoint allows you to list all pending invitations.\n\nThe response contains the list of invitations and a pagination cursor to retrieve the next page.\n\nThe invitations are sorted by id.\n\nYou need a token with the scope superior or equal to `member:read` to use this endpoint, and if you\nare using a personal access token, you need to have a role superior or equal to `manager`.\n",
+        "responses": {
+          "200": {
+            "description": "List invitations",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/members?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/members?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/invitation"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Forbidden Call",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Invitations"
+        ],
+        "operationId": "create-invitations",
+        "summary": "Create Invitation",
+        "description": "This endpoint allows you to send an invitation to a user.\n\nYou need a token with the scope `member:write` to use this endpoint, and if you\nare using a personal access token, you need to have a role superior or equal to `manager`.\n",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "title": "Invitation Request",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "example": "eric@gitguardian.com",
+                    "description": "email of the user to invite.\n"
+                  },
+                  "role": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/NonOwnerMemberRoleEnum"
+                      }
+                    ],
+                    "example": "manager",
+                    "default": "member"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User already in the workspace",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "details": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "Invitation sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/invitation"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Forbidden Call",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "409": {
+            "$ref": "#/components/responses/ConflictError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/invitations/{invitation_id}": {
+      "delete": {
+        "tags": [
+          "Invitations"
+        ],
+        "operationId": "delete-invitation",
+        "summary": "Delete an Invitation",
+        "description": "Delete an existing invitation.\n\nYou need a token with the scope `member:write` to use this endpoint, and if you\nare using a personal access token, you need to have a role superior or equal to `manager`.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invitation_id"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "The invitation was deleted successfully."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Forbidden Call",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invitation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/invitations/{invitation_id}/resend": {
+      "post": {
+        "tags": [
+          "Invitations"
+        ],
+        "operationId": "resend-invitation",
+        "summary": "Resend an Invitation",
+        "description": "Resend an existing invitation.\n\nYou need a token with the scope `member:write` to use this endpoint, and if you\nare using a personal access token, you need to have a role superior or equal to `manager`.\n",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/invitation_id"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invitation sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "string",
+                      "example": "Email sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Forbidden Call",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Invitation not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/members": {
+      "get": {
+        "tags": [
+          "Members"
+        ],
+        "operationId": "list-members",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "name": "role",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/MemberRoleEnum"
+                }
+              ],
+              "description": "Filter members based on their role."
+            }
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Search members based on their name or email."
+            }
+          }
+        ],
+        "summary": "List Workspace Members",
+        "description": "List members of the workspace.\n",
+        "responses": {
+          "200": {
+            "description": "List members",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/members?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/members?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              },
+              "X-Next-Page": {
+                "$ref": "#/components/headers/xNextPage"
+              },
+              "X-Page": {
+                "$ref": "#/components/headers/xPage"
+              },
+              "X-Prev-Page": {
+                "$ref": "#/components/headers/xPrevPage"
+              },
+              "X-Total": {
+                "$ref": "#/components/headers/xTotal"
+              },
+              "X-Total-Pages": {
+                "$ref": "#/components/headers/xTotalPages"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/member"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/scan": {
+      "post": {
+        "tags": [
+          "Scan Methods"
+        ],
+        "operationId": "content_scan",
+        "summary": "Content Scan",
+        "description": "Scan provided document content for policy breaks.\n\nRequest body shouldn't exceed 1MB.\n\nThis endpoint is stateless and as such will not store in our servers neither the documents nor the secrets found.\n",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/document"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Scan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/scanResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/OverQuotaError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        },
+        "x-code-samples": [
+          {
+            "lang": "Shell",
+            "label": "cURL",
+            "source": "curl --request POST \\\n  --url https://api.gitguardian.com/v1/scan \\\n  --header 'authorization: Token <Insert API Key>' \\\n  --header 'content-type: application/json' \\\n  --data '{\n\"document\": \"import urllib.request\\nurl = '\\''http://jen_barber:correcthorsebatterystaple@cake.gitguardian.com/isreal.json'\\''\\nresponse = urllib.request.urlopen(url)\\nconsume(response.read())\",\n\"filename\": \".env\"\n} '\n"
+          },
+          {
+            "lang": "Python",
+            "source": "import os\nfrom pygitguardian import GGClient\ndoc_content = \"import urllib.request\\n\nurl = 'http://jen_barber:correcthorsebatterystaple@cake.gitguardian.com/isreal.json'\\n\nresponse = urllib.request.urlopen(url)\\n\nconsume(response.read())\"\nclient = GGClient(api_key=API_KEY)\nscan_result = client.content_scan(filename=\".env\", document=doc_content)\nprint(\"Scan results:\", scan_result.has_secrets, \":\", scan_result.policy_break_count)\n"
+          }
+        ]
+      }
+    },
+    "/v1/multiscan": {
+      "post": {
+        "tags": [
+          "Scan Methods"
+        ],
+        "operationId": "multiple_scan",
+        "summary": "Multiple Content Scan",
+        "description": "Scan provided document contents for policy breaks.\nMultiple documents are returned by the same index order.\n\nRequest body shouldn't exceed 2MB and individual documents shouldn't exceed 1MB.\n\nThis endpoint is stateless and as such will not store in our servers neither the documents nor the secrets found.\n",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "description": "List of documents to scan.",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/components/schemas/document"
+                },
+                "example": [
+                  {
+                    "filename": ".env",
+                    "document": "import urllib.request\nurl = 'http://jen_barber:correcthorsebatterystaple@cake.gitguardian.com/isreal.json'\nresponse = urllib.request.urlopen(url)\nconsume(response.read())\n"
+                  },
+                  {
+                    "filename": "__init__.py",
+                    "document": "__version__=\"1.0.0\""
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Scan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "description": "List of scan results. Corresponding index to document array.",
+                  "minItems": 1,
+                  "items": {
+                    "$ref": "#/components/schemas/scanResult"
+                  },
+                  "example": [
+                    {
+                      "policy_break_count": 2,
+                      "policies": [
+                        "Filename",
+                        "File extensions",
+                        "Secrets detection"
+                      ],
+                      "policy_breaks": [
+                        {
+                          "type": ".env",
+                          "policy": "Filenames",
+                          "matches": [
+                            {
+                              "type": "filename",
+                              "match": ".env"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "Basic Auth String",
+                          "policy": "Secrets detection",
+                          "validity": "cannot_check",
+                          "matches": [
+                            {
+                              "type": "username",
+                              "match": "jen_barber",
+                              "index_start": 52,
+                              "index_end": 61,
+                              "line_start": 2,
+                              "line_end": 2
+                            },
+                            {
+                              "type": "password",
+                              "match": "correcthorsebatterystaple",
+                              "index_start": 63,
+                              "index_end": 87,
+                              "line_start": 2,
+                              "line_end": 2
+                            },
+                            {
+                              "type": "host",
+                              "match": "cake.gitguardian.com",
+                              "index_start": 89,
+                              "index_end": 108,
+                              "line_start": 2,
+                              "line_end": 2
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "policy_break_count": 0,
+                      "policies": [
+                        "Filename",
+                        "File extensions",
+                        "Secrets detection"
+                      ],
+                      "policy_breaks": []
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "$ref": "#/components/responses/OverQuotaError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        },
+        "x-code-samples": [
+          {
+            "lang": "Shell",
+            "label": "cURL",
+            "source": "curl --request POST \\\n  --url https://api.gitguardian.com/v1/multiscan \\\n  --header 'authorization: Token <Insert API Key>' \\\n  --header 'content-type: application/json' \\\n  --data '[\n{\n\"document\":  \"import urllib.request\\nurl = '\\''http://jen_barber:correcthorsebatterystaple@cake.gitguardian.com/isreal.json'\\''\\nresponse = urllib.request.urlopen(url)\\nconsume(response.read())\",\n\"filename\": \".env\"\n},\n{\n  \"document\":  \"__version__=\\\"1.0.0\\\"\",\n  \"filename\": \"__init__.py\"\n}\n]'\n"
+          },
+          {
+            "lang": "Python",
+            "source": "import os\nfrom pygitguardian import GGClient\ndoc_content = \"import urllib.request\\n\nurl = 'http://jen_barber:correcthorsebatterystaple@cake.gitguardian.com/isreal.json'\\n\nresponse = urllib.request.urlopen(url)\\n\nconsume(response.read())\"\nclient = GGClient(api_key=API_KEY)\nto_scan = [{\"filename\": \".env\", \"document\": doc_content},\n  {\"filename\": \"__init__.py\", \"document\": \"__version__=\"1.0.0\"}]\nscan_results = client.multi_content_scan(to_scan)\nprint(scan_results)\n"
+          }
+        ]
+      }
+    },
+    "/v1/quotas": {
+      "get": {
+        "tags": [
+          "Quota"
+        ],
+        "operationId": "quotas",
+        "summary": "Quota Overview",
+        "description": "Check available scanning calls for this token. Quota is shared between all tokens of a workspace\n",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Quota Overview",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/quota"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/sources": {
+      "get": {
+        "tags": [
+          "Sources"
+        ],
+        "operationId": "list-sources",
+        "summary": "List Sources",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/page"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/sourceSearch"
+          },
+          {
+            "$ref": "#/components/parameters/sourceType"
+          },
+          {
+            "name": "search",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Sources matching this search.",
+              "example": "test-repository"
+            }
+          },
+          {
+            "name": "last_scan_status",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ScanStatusEnum"
+                }
+              ],
+              "description": "Filter sources based on the status of their latest historical scan."
+            }
+          },
+          {
+            "name": "health",
+            "in": "query",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SourceHealthEnum"
+                }
+              ],
+              "description": "Filter sources based on their health status."
+            }
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "description": "Filter by integration type.",
+              "example": "github",
+              "enum": [
+                "bitbucket",
+                "github",
+                "gitlab"
+              ]
+            }
+          }
+        ],
+        "description": "List sources monitored by GitGuardian.\n",
+        "responses": {
+          "200": {
+            "description": "Source List",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist",
+                  "example": "<http://api.gitguardian.com/exposed/v1/sources?cursor=cD0xNTA%3D>; rel=\"next\",<http://api.gitguardian.com/exposed/v1/sources?cursor=cD0xNTA%3D>; rel=\"prev\""
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              },
+              "X-Next-Page": {
+                "$ref": "#/components/headers/xNextPage"
+              },
+              "X-Page": {
+                "$ref": "#/components/headers/xPage"
+              },
+              "X-Prev-Page": {
+                "$ref": "#/components/headers/xPrevPage"
+              },
+              "X-Total": {
+                "$ref": "#/components/headers/xTotal"
+              },
+              "X-Total-Pages": {
+                "$ref": "#/components/headers/xTotalPages"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/source"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/sources/{source_id}": {
+      "get": {
+        "tags": [
+          "Sources"
+        ],
+        "operationId": "retrieve-source",
+        "summary": "Retrieve Source",
+        "description": "Retrieve source monitored by GitGuardian.\n",
+        "parameters": [
+          {
+            "name": "source_id",
+            "in": "path",
+            "required": true,
+            "description": "The id of the source to retrieve.",
+            "schema": {
+              "type": "integer",
+              "example": 5523
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Source List",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/source"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/audit_logs": {
+      "get": {
+        "tags": [
+          "Audit Logs"
+        ],
+        "operationId": "list-audit-logs",
+        "summary": "List Audit Logs",
+        "description": "List audit logs.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/cursor"
+          },
+          {
+            "$ref": "#/components/parameters/per_page"
+          },
+          {
+            "$ref": "#/components/parameters/date_before"
+          },
+          {
+            "$ref": "#/components/parameters/date_after"
+          },
+          {
+            "name": "event_name",
+            "in": "query",
+            "description": "Entries matching this event name.",
+            "schema": {
+              "type": "string",
+              "example": "user.logged_in"
+            }
+          },
+          {
+            "name": "member_id",
+            "in": "query",
+            "description": "The id of the member to retrieve.",
+            "schema": {
+              "type": "integer",
+              "example": 3252
+            }
+          },
+          {
+            "name": "member_name",
+            "in": "query",
+            "description": "Entries matching this member name.",
+            "schema": {
+              "type": "string",
+              "example": "John Smith"
+            }
+          },
+          {
+            "name": "member_email",
+            "in": "query",
+            "description": "Entries matching this member email.",
+            "schema": {
+              "type": "string",
+              "example": "john.smith@example.org"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Audit logs List",
+            "headers": {
+              "Link": {
+                "schema": {
+                  "type": "string",
+                  "description": "Links toward the previous and next pages if they exist"
+                }
+              },
+              "X-Per-Page": {
+                "$ref": "#/components/headers/xPerPage"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/auditLog"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequestError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        }
+      }
+    },
+    "/v1/health": {
+      "get": {
+        "tags": [
+          "Status"
+        ],
+        "operationId": "health_check",
+        "summary": "Health Check",
+        "description": "Check the status of the API and your token without spending your quota.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "API on and key valid response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "title": "Health Status",
+                  "description": "Health check response.",
+                  "required": [
+                    "detail"
+                  ],
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "API key status."
+                    }
+                  }
+                },
+                "examples": {
+                  "healthy": {
+                    "summary": "Valid API Key.",
+                    "value": {
+                      "detail": "Valid API key."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "503": {
+            "$ref": "#/components/responses/MaintenanceResponse"
+          }
+        },
+        "x-code-samples": [
+          {
+            "lang": "Shell",
+            "label": "cURL",
+            "source": "curl --request GET \\\n    --url https://api.gitguardian.com/v1/health \\\n    --header 'authorization: Token <Insert API Key>'\n"
+          },
+          {
+            "lang": "Python",
+            "source": "import os\nfrom pygitguardian import GGClient\n# store your API key in an environment variable\nclient = GGClient(api_key=os.getenv(\"GG_API_KEY\"))\nhealth_obj = client.health_check()\nif bool(health_obj):\n    print(\"Healthy API server\")\n"
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "document": {
+        "type": "object",
+        "title": "Document",
+        "required": [
+          "document"
+        ],
+        "properties": {
+          "filename": {
+            "type": "string",
+            "example": ".env",
+            "maxLength": 256
+          },
+          "document": {
+            "type": "string",
+            "example": "\nimport urllib.request\nurl = 'http://jen_barber:correcthorsebatterystaple@cake.gitguardian.com/isreal.json'\nresponse = urllib.request.urlopen(url)\nconsume(response.read())\n"
+          }
+        }
+      },
+      "error": {
+        "type": "object",
+        "title": "Error",
+        "description": "Error obtained in an API response",
+        "required": [
+          "detail"
+        ],
+        "properties": {
+          "detail": {
+            "type": "string",
+            "description": "Details on response."
+          }
+        }
+      },
+      "quota": {
+        "type": "object",
+        "title": "Quota Overview",
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer"
+              },
+              "remaining": {
+                "type": "integer"
+              },
+              "since": {
+                "type": "string",
+                "format": "date"
+              }
+            }
+          }
+        },
+        "example": {
+          "content": {
+            "count": 2,
+            "limit": 5000,
+            "remaining": 4998,
+            "since": "2021-04-18"
+          }
+        }
+      },
+      "scanResult": {
+        "type": "object",
+        "title": "Scan Result",
+        "description": "Result of a content scan.",
+        "required": [
+          "policy_break_count",
+          "policies",
+          "policy_breaks"
+        ],
+        "properties": {
+          "policy_break_count": {
+            "type": "integer",
+            "description": "Number of policy breaks on this document.",
+            "minimum": 0,
+            "example": 2
+          },
+          "policies": {
+            "type": "array",
+            "description": "Policies checked on this document.",
+            "minItems": 0,
+            "items": {
+              "type": "string"
+            },
+            "example": [
+              "Filename",
+              "File extensions",
+              "Secrets detection"
+            ]
+          },
+          "policy_breaks": {
+            "type": "array",
+            "description": "List of policy breaks.",
+            "minItems": 0,
+            "items": {
+              "$ref": "#/components/schemas/policyBreak"
+            },
+            "example": [
+              {
+                "type": ".env",
+                "policy": "Filenames",
+                "matches": [
+                  {
+                    "type": "filename",
+                    "match": ".env"
+                  }
+                ]
+              },
+              {
+                "type": "Basic Auth String",
+                "policy": "Secrets detection",
+                "validity": "cannot_check",
+                "matches": [
+                  {
+                    "type": "username",
+                    "match": "jen_barber",
+                    "index_start": 52,
+                    "index_end": 61,
+                    "line_start": 2,
+                    "line_end": 2
+                  },
+                  {
+                    "type": "password",
+                    "match": "correcthorsebatterystaple",
+                    "index_start": 63,
+                    "index_end": 87,
+                    "line_start": 2,
+                    "line_end": 2
+                  },
+                  {
+                    "type": "host",
+                    "match": "cake.gitguardian.com",
+                    "index_start": 89,
+                    "index_end": 108,
+                    "line_start": 2,
+                    "line_end": 2
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "policyBreak": {
+        "type": "object",
+        "title": "Policy Break",
+        "description": "Issue found in your Document",
+        "required": [
+          "type",
+          "policy",
+          "matches"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "description": "Type of detected policy."
+          },
+          "policy": {
+            "type": "string",
+            "description": "Name of failing policy."
+          },
+          "validity": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "no_checker",
+              "valid",
+              "invalid",
+              "failed_to_check",
+              "unknown"
+            ],
+            "description": "Validity of the found secret."
+          },
+          "matches": {
+            "type": "array",
+            "description": "List of secret matches.",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "match"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string",
+                  "description": "Type of match"
+                },
+                "match": {
+                  "type": "string",
+                  "description": "Matched string of failure"
+                },
+                "line_start": {
+                  "type": "integer",
+                  "description": "start line number of match (index origin = 1)"
+                },
+                "line_end": {
+                  "type": "integer",
+                  "description": "end line number of match (index origin = 1)"
+                },
+                "index_start": {
+                  "type": "integer",
+                  "description": "start index of match in file as an array (index origin = 0)"
+                },
+                "index_end": {
+                  "type": "integer",
+                  "description": "end index of match in file as an array (index origin = 0)"
+                }
+              }
+            }
+          }
+        }
+      },
+      "match": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "readOnly": true,
+            "title": "Match name",
+            "example": "apikey"
+          },
+          "indice_start": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "Match start index",
+            "example": 32
+          },
+          "indice_end": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "Match end index",
+            "example": 79
+          },
+          "pre_line_start": {
+            "type": "integer",
+            "nullable": true,
+            "readOnly": true,
+            "title": "Match start line before Git patch",
+            "example": null
+          },
+          "pre_line_end": {
+            "type": "integer",
+            "nullable": true,
+            "readOnly": true,
+            "title": "Match end line before Git patch",
+            "example": null
+          },
+          "post_line_start": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "Match start line after Git patch",
+            "example": 1
+          },
+          "post_line_end": {
+            "type": "integer",
+            "readOnly": true,
+            "title": "Match end line after Git patch",
+            "example": 1
+          }
+        },
+        "required": [
+          "indice_end",
+          "indice_start",
+          "name",
+          "post_line_end",
+          "post_line_start",
+          "pre_line_end",
+          "pre_line_start"
+        ]
+      },
+      "scan": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Creation date of this historical scan",
+            "example": "2021-05-20T12:40:55.662949Z"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ScanStatusEnum"
+              }
+            ],
+            "example": "finished"
+          }
+        }
+      },
+      "incidentWithoutOccurrences": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3759
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "title": "Last trigger date",
+            "example": "2019-08-22T14:15:22Z"
+          },
+          "detector": {
+            "$ref": "#/components/schemas/detector"
+          },
+          "secret_hash": {
+            "type": "string",
+            "readOnly": true,
+            "title": "Unique hash",
+            "example": "Ri9FjVgdOlPnBmujoxP4XPJcbe82BhJXB/SAngijw/juCISuOMgPzYhV28m6OG24"
+          },
+          "gitguardian_url": {
+            "type": "string",
+            "readOnly": true,
+            "title": "URL on the dashboard",
+            "example": "https://dashboard.gitguardian.com/workspace/1/incidents/3899"
+          },
+          "regression": {
+            "type": "boolean",
+            "readOnly": true,
+            "example": false
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StatusEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "assignee_email": {
+            "type": "string",
+            "nullable": true,
+            "example": "eric@gitguardian.com"
+          },
+          "occurrence_count": {
+            "type": "integer",
+            "example": 4
+          },
+          "occurrences": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/occurrence"
+            },
+            "example": null
+          },
+          "ignore_reason": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SecretStatusEnum"
+              }
+            ],
+            "nullable": true,
+            "example": "test_credential"
+          },
+          "ignored_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2019-08-24T14:15:22Z"
+          },
+          "secret_revoked": {
+            "type": "boolean",
+            "example": false
+          },
+          "severity": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SeverityEnum"
+              }
+            ],
+            "example": "high"
+          },
+          "validity": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ValidityEnum"
+              }
+            ],
+            "example": "valid"
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": null
+          },
+          "share_url": {
+            "type": "string",
+            "readOnly": true,
+            "example": "https://dashboard.gitguardian.com/share/incidents/11111111-1111-1111-1111-111111111111"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagEnum"
+            },
+            "example": [
+              "FROM_HISTORICAL_SCAN",
+              "SENSITIVE_FILE"
+            ]
+          }
+        },
+        "required": [
+          "assignments",
+          "date",
+          "detector",
+          "hash",
+          "id",
+          "ignored",
+          "regression",
+          "resolved",
+          "status"
+        ]
+      },
+      "incident": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3759
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "title": "Last trigger date",
+            "example": "2019-08-22T14:15:22Z"
+          },
+          "detector": {
+            "$ref": "#/components/schemas/detector"
+          },
+          "secret_hash": {
+            "type": "string",
+            "readOnly": true,
+            "title": "Unique hash",
+            "example": "Ri9FjVgdOlPnBmujoxP4XPJcbe82BhJXB/SAngijw/juCISuOMgPzYhV28m6OG24"
+          },
+          "gitguardian_url": {
+            "type": "string",
+            "readOnly": true,
+            "title": "URL on the dashboard",
+            "example": "https://dashboard.gitguardian.com/workspace/1/incidents/3899"
+          },
+          "regression": {
+            "type": "boolean",
+            "readOnly": true,
+            "example": false
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StatusEnum"
+              }
+            ],
+            "readOnly": true
+          },
+          "assignee_email": {
+            "type": "string",
+            "nullable": true,
+            "example": "eric@gitguardian.com"
+          },
+          "occurrence_count": {
+            "type": "integer",
+            "example": 4
+          },
+          "occurrences": {
+            "type": "array",
+            "nullable": true,
+            "items": {
+              "$ref": "#/components/schemas/occurrence"
+            }
+          },
+          "ignore_reason": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SecretStatusEnum"
+              }
+            ],
+            "nullable": true,
+            "example": "test_credential"
+          },
+          "severity": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SeverityEnum"
+              }
+            ],
+            "example": "high"
+          },
+          "validity": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ValidityEnum"
+              }
+            ],
+            "example": "valid"
+          },
+          "ignored_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2019-08-24T14:15:22Z"
+          },
+          "secret_revoked": {
+            "type": "boolean",
+            "example": false
+          },
+          "resolved_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": null
+          },
+          "share_url": {
+            "type": "string",
+            "readOnly": true,
+            "example": "https://dashboard.gitguardian.com/share/incidents/11111111-1111-1111-1111-111111111111"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TagEnum"
+            },
+            "example": [
+              "FROM_HISTORICAL_SCAN",
+              "SENSITIVE_FILE"
+            ]
+          }
+        },
+        "required": [
+          "assignments",
+          "date",
+          "detector",
+          "hash",
+          "id",
+          "ignored",
+          "regression",
+          "resolved",
+          "status"
+        ]
+      },
+      "incidentNote": {
+        "type": "object",
+        "title": "Incident Note",
+        "properties": {
+          "id": {
+            "type": "number",
+            "readOnly": true,
+            "example": 17
+          },
+          "incident_id": {
+            "type": "number",
+            "readOnly": true,
+            "example": 42,
+            "description": "Id of the related Incident"
+          },
+          "member_id": {
+            "type": "number",
+            "nullable": true,
+            "readOnly": true,
+            "example": 38,
+            "description": "Id of the member who created this note. Can be null if the note was\nnot created by a member or if the member was deleted.\n"
+          },
+          "api_token": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true,
+            "example": null,
+            "description": "Name of the API key which created this note. Can be null if the note\nwas not created via the API.\n"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Creation date of the note",
+            "example": "2019-08-22T14:15:22Z"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "example": null,
+            "description": "Last time the content of the note was updated. Null if the\ncomment was never modified.\n"
+          },
+          "comment": {
+            "type": "string",
+            "example": "I revoked this secret"
+          },
+          "issue_id": {
+            "type": "number",
+            "readOnly": true,
+            "example": 42,
+            "description": "Id of the related Incident. Use `incident_id` instead.",
+            "deprecated": true
+          },
+          "user_id": {
+            "type": "number",
+            "nullable": true,
+            "readOnly": true,
+            "example": 38,
+            "description": "Id of the user who created this note. Can be null if the note was\nnot created by a user or if the user was deleted. Use `member_id` instead.\n",
+            "deprecated": true
+          }
+        }
+      },
+      "incidentToken": {
+        "type": "object",
+        "title": "Incident Sharing Information",
+        "properties": {
+          "share_url": {
+            "type": "string",
+            "readOnly": true,
+            "example": "https://dashboard.gitguardian.com/share/incidents/11111111-1111-1111-1111-111111111111"
+          },
+          "incident_id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3759
+          },
+          "feedback_collection": {
+            "type": "boolean",
+            "example": true,
+            "description": "Allow the developer to submit their feedback through the share link"
+          },
+          "auto_healing": {
+            "type": "boolean",
+            "example": false,
+            "description": "Allow the developer to resolve or ignore through the share link"
+          },
+          "token": {
+            "type": "string",
+            "example": "12345678-1234-1234-1234-123456789012"
+          },
+          "expire_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": "2019-08-24T14:15:22Z"
+          },
+          "revoked_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "example": null
+          }
+        }
+      },
+      "occurrence": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 4421
+          },
+          "incident_id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3759
+          },
+          "kind": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OccurrenceKindEnum"
+              }
+            ],
+            "readOnly": true,
+            "title": "Kind when created"
+          },
+          "sha": {
+            "type": "string",
+            "readOnly": true,
+            "title": "Commit SHA",
+            "example": "d670460b4b4aece5915caf5c68d12f560a9fe3e4"
+          },
+          "source": {
+            "$ref": "#/components/schemas/source"
+          },
+          "author_name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "Eric"
+          },
+          "author_info": {
+            "type": "string",
+            "readOnly": true,
+            "example": "eric@gitguardian.com"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "title": "Publish date",
+            "example": "2021-05-20T12:40:55.662949Z"
+          },
+          "presence": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PresenceEnum"
+              }
+            ],
+            "example": "present"
+          },
+          "url": {
+            "type": "string",
+            "readOnly": true,
+            "example": "https://github.com/prm-dev-team/QATest_staging/commit/76dd18a2a8d27eaf00a45851cc7731c53b59ed19#diff-0f372f3171c8f13a15a22a1081487ed54fa70ad088e17c6c6386196a179a04ffR1"
+          },
+          "matches": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/match"
+            }
+          },
+          "filepath": {
+            "type": "string",
+            "readOnly": true,
+            "description": "This is filename for old models with incomplete data",
+            "example": "test_data/12123testfile.txt"
+          }
+        },
+        "required": [
+          "account",
+          "author_info",
+          "author_name",
+          "date",
+          "sha",
+          "filepath",
+          "kind",
+          "matches",
+          "source",
+          "url"
+        ]
+      },
+      "detector": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "slack_bot_token"
+          },
+          "display_name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "Slack Bot Token"
+          },
+          "nature": {
+            "type": "string",
+            "readOnly": true,
+            "example": "specific"
+          },
+          "family": {
+            "type": "string",
+            "readOnly": true,
+            "example": "apikey"
+          },
+          "detector_group_name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "slackbot_token"
+          },
+          "detector_group_display_name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "Slack Bot Token"
+          }
+        },
+        "required": [
+          "name",
+          "display_name",
+          "nature"
+        ]
+      },
+      "invitation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3252
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "readOnly": true,
+            "example": "john.smith@example.org"
+          },
+          "role": {
+            "readOnly": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/NonOwnerMemberRoleEnum"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "description": "Creation date of the invitation",
+            "example": "2019-08-22T14:15:22Z"
+          }
+        }
+      },
+      "member": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3252
+          },
+          "name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "John Smith"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "readOnly": true,
+            "example": "john.smith@example.org"
+          },
+          "role": {
+            "readOnly": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/MemberRoleEnum"
+              }
+            ]
+          }
+        }
+      },
+      "source": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "example": 6531
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "example": "https://github.com/GitGuardian/gg-shield"
+          },
+          "type": {
+            "type": "string",
+            "example": "github"
+          },
+          "full_name": {
+            "type": "string",
+            "example": "gitguardian/gg-shield"
+          },
+          "health": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SourceHealthEnum"
+              }
+            ],
+            "example": "at_risk"
+          },
+          "open_incidents_count": {
+            "type": "number",
+            "description": "Number of open secret incidents with at least one occurrence on this source.\n",
+            "example": 3
+          },
+          "closed_incidents_count": {
+            "type": "number",
+            "description": "Number of closed secret incidents with at least one occurrence on this source.\n",
+            "example": 2
+          },
+          "visibility": {
+            "type": "string",
+            "example": "public"
+          },
+          "last_scan": {
+            "$ref": "#/components/schemas/scan"
+          }
+        },
+        "required": [
+          "display_name",
+          "id",
+          "type",
+          "url",
+          "visibility"
+        ]
+      },
+      "auditLog": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "readOnly": true,
+            "example": 3759
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true,
+            "title": "Date the event occurred",
+            "example": "2019-08-22T14:15:22Z"
+          },
+          "member_email": {
+            "type": "string",
+            "readOnly": true,
+            "example": "eric@gitguardian.com"
+          },
+          "member_name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "Eric",
+            "description": "Name of the member at the time he/she did the event. It may differ from the current name \nof the member if it has been updated since.\n"
+          },
+          "member_id": {
+            "type": "integer",
+            "nullable": true,
+            "readOnly": true,
+            "example": 1243,
+            "description": "ID of the member that did the event. Can be null if the member has been deleted since then: \nin that case use `member_name` and `member_email` to identify the author of the action.\n"
+          },
+          "api_token_id": {
+            "type": "integer",
+            "nullable": true,
+            "readOnly": true,
+            "example": 1243,
+            "description": "ID of the API token associated to the event if it was done through the API"
+          },
+          "ip_address": {
+            "type": "string",
+            "readOnly": true,
+            "nullable": true
+          },
+          "target_ids": {
+            "type": "array",
+            "readOnly": true,
+            "items": {
+              "type": "integer"
+            },
+            "example": [
+              1243,
+              3423
+            ]
+          },
+          "action_type": {
+            "type": "string",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AuditLogActionTypeEnum"
+              }
+            ],
+            "example": "READ",
+            "readOnly": true
+          },
+          "event_name": {
+            "type": "string",
+            "readOnly": true,
+            "example": "user.logged_in"
+          },
+          "data": {
+            "type": "object",
+            "readOnly": true,
+            "nullable": true,
+            "description": "Additional data associated to the event.",
+            "example": "{type: github_sso}"
+          }
+        }
+      },
+      "MemberRoleEnum": {
+        "enum": [
+          "owner",
+          "manager",
+          "member",
+          "viewer",
+          "restricted"
+        ],
+        "type": "string"
+      },
+      "NonOwnerMemberRoleEnum": {
+        "enum": [
+          "manager",
+          "member",
+          "viewer",
+          "restricted"
+        ],
+        "type": "string"
+      },
+      "OccurrenceKindEnum": {
+        "enum": [
+          "Realtime",
+          "Historical"
+        ],
+        "type": "string"
+      },
+      "PresenceEnum": {
+        "enum": [
+          "present",
+          "removed"
+        ],
+        "type": "string"
+      },
+      "ScanStatusEnum": {
+        "enum": [
+          "pending",
+          "running",
+          "canceled",
+          "failed",
+          "too_large",
+          "timeout",
+          "finished"
+        ],
+        "type": "string"
+      },
+      "SecretStatusEnum": {
+        "enum": [
+          "test_credential",
+          "false_positive",
+          "low_risk"
+        ],
+        "type": "string"
+      },
+      "SeverityEnum": {
+        "enum": [
+          "critical",
+          "high",
+          "medium",
+          "low",
+          "info",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "SourceHealthEnum": {
+        "enum": [
+          "safe",
+          "unknown",
+          "at_risk"
+        ],
+        "type": "string"
+      },
+      "StatusEnum": {
+        "enum": [
+          "IGNORED",
+          "TRIGGERED",
+          "ASSIGNED",
+          "RESOLVED"
+        ],
+        "type": "string"
+      },
+      "ValidityEnum": {
+        "enum": [
+          "valid",
+          "invalid",
+          "failed_to_check",
+          "no_checker",
+          "unknown"
+        ],
+        "type": "string"
+      },
+      "TagEnum": {
+        "enum": [
+          "FROM_HISTORICAL_SCAN",
+          "IGNORED_IN_CHECK_RUN",
+          "PUBLIC",
+          "REGRESSION",
+          "SENSITIVE_FILE",
+          "TEST_FILE"
+        ],
+        "type": "string"
+      },
+      "TagFilterEnum": {
+        "enum": [
+          "FROM_HISTORICAL_SCAN",
+          "IGNORED_IN_CHECK_RUN",
+          "PUBLIC",
+          "REGRESSION",
+          "SENSITIVE_FILE",
+          "TEST_FILE",
+          "NONE"
+        ]
+      },
+      "AuditLogActionTypeEnum": {
+        "enum": [
+          "READ",
+          "CREATE",
+          "UPDATE",
+          "DELETE",
+          "OTHER"
+        ],
+        "type": "string"
+      }
+    },
+    "responses": {
+      "MaintenanceResponse": {
+        "description": "API under maintenance",
+        "headers": {
+          "X-Maintenance": {
+            "required": true,
+            "schema": {
+              "type": "boolean"
+            },
+            "example": true
+          }
+        },
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            },
+            "examples": {
+              "error": {
+                "summary": "API maintenance",
+                "value": {
+                  "detail": "API under scheduled maintenance."
+                }
+              }
+            }
+          }
+        }
+      },
+      "ConflictError": {
+        "description": "Data conflict",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            },
+            "examples": {
+              "error": {
+                "summary": "Data conflict",
+                "value": {
+                  "detail": "Request conflicts with existing data."
+                }
+              }
+            }
+          }
+        }
+      },
+      "BadRequestError": {
+        "description": "Invalid data",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            },
+            "examples": {
+              "error": {
+                "summary": "Invalid Data",
+                "value": {
+                  "detail": "Invalid data."
+                }
+              }
+            }
+          }
+        }
+      },
+      "UnauthorizedError": {
+        "description": "Invalid API key",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            },
+            "examples": {
+              "error": {
+                "summary": "Invalid APIKey",
+                "value": {
+                  "detail": "Invalid API key."
+                }
+              }
+            }
+          }
+        }
+      },
+      "OverQuotaError": {
+        "description": "Quota limit reached",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/error"
+            },
+            "examples": {
+              "error": {
+                "summary": "Quota limit reached.",
+                "value": {
+                  "detail": "Quota limit reached."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "incident_id": {
+        "name": "incident_id",
+        "in": "path",
+        "required": true,
+        "description": "The id of the incident to retrieve",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "invitation_id": {
+        "name": "invitation_id",
+        "in": "path",
+        "required": true,
+        "description": "The id of the invitation to retrieve",
+        "schema": {
+          "type": "integer"
+        }
+      },
+      "cursor": {
+        "name": "cursor",
+        "in": "query",
+        "description": "Pagination cursor.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "page": {
+        "deprecated": true,
+        "name": "page",
+        "in": "query",
+        "description": "Page number.",
+        "schema": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 1
+        }
+      },
+      "per_page": {
+        "name": "per_page",
+        "in": "query",
+        "description": "Number of items to list per page.",
+        "schema": {
+          "type": "integer",
+          "default": 20,
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "date_before": {
+        "in": "query",
+        "name": "date_before",
+        "schema": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Entries found before this date.",
+          "example": "2019-08-30T14:15:22Z"
+        }
+      },
+      "date_after": {
+        "in": "query",
+        "name": "date_after",
+        "schema": {
+          "type": "string",
+          "format": "datetime",
+          "description": "Entries found after this date.",
+          "example": "2019-08-22T14:15:22Z"
+        }
+      }
+    },
+    "headers": {
+      "xPage": {
+        "deprecated": true,
+        "schema": {
+          "description": "The index of the current page.",
+          "minimum": 1
+        }
+      },
+      "xPerPage": {
+        "schema": {
+          "type": "integer",
+          "description": "The number of items per page.",
+          "default": 20,
+          "minimum": 1,
+          "maximum": 100
+        }
+      },
+      "xNextPage": {
+        "deprecated": true,
+        "schema": {
+          "type": "integer",
+          "description": "The index of the next page.",
+          "minimum": 1
+        }
+      },
+      "xPrevPage": {
+        "deprecated": true,
+        "schema": {
+          "type": "integer",
+          "description": "The index of the previous page.",
+          "minimum": 1
+        }
+      },
+      "xTotal": {
+        "deprecated": true,
+        "schema": {
+          "type": "integer",
+          "description": "The total number of items.",
+          "minimum": 1
+        }
+      },
+      "xTotalPages": {
+        "deprecated": true,
+        "schema": {
+          "type": "integer",
+          "description": "The total number of pages.",
+          "minimum": 1
+        }
+      }
+    },
+    "securitySchemes": {
+      "BearerAuth": {
+        "description": "\n\nUsage: `Token <API Key>` in `authorization` header.\n",
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "Token <API Key>"
+      }
+    }
+  },
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
+}

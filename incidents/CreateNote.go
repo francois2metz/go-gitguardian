@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type CreateNoteOptions struct {
@@ -35,7 +37,8 @@ func (c *IncidentsClient) CreateNote(IncidentId int, lo CreateNoteOptions) (*Inc
 		return nil, err
 	}
 
-	req, err := c.client.NewRequest("POST", fmt.Sprintf("/v1/incidents/secrets/%d/notes", IncidentId), b)
+	endpoint := types.Endpoints["CreateNote"]
+	req, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId), b)
 	if err != nil {
 		return nil, err
 	}

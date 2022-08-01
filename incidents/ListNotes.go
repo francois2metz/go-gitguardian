@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 type ListNotesOptions struct {
@@ -30,7 +32,8 @@ type IncidentListNotesResponse struct {
 }
 
 func (c *IncidentsClient) ListNotes(IncidentId int, lo ListNotesOptions) (*IncidentListNotesResult, error) {
-	req, err := c.client.NewRequest("GET", fmt.Sprintf("/v1/incidents/secrets/%d/notes", IncidentId), nil)
+	endpoint := types.Endpoints["ListNotes"]
+	req, err := c.client.NewRequest(endpoint.Operation, fmt.Sprintf(endpoint.Path, IncidentId), nil)
 	if err != nil {
 		return nil, err
 	}

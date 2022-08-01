@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 func (c *ScanClient) ContentScan(payload ContentScanPayload) (*ContentScanResult, error) {
@@ -15,7 +17,8 @@ func (c *ScanClient) ContentScan(payload ContentScanPayload) (*ContentScanResult
 		return nil, err
 	}
 
-	req, err := c.client.NewRequest("POST", "/v1/scan", b)
+	endpoint := types.Endpoints["Scan"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, b)
 	if err != nil {
 		return nil, err
 	}

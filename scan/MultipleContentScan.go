@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 func (c *ScanClient) MultipleContentScan(payload []ContentScanPayload) (*MultipleContentScanResult, error) {
@@ -15,7 +17,8 @@ func (c *ScanClient) MultipleContentScan(payload []ContentScanPayload) (*Multipl
 		return nil, err
 	}
 
-	req, err := c.client.NewRequest("POST", "/v1/multiscan", b)
+	endpoint := types.Endpoints["ScanMultiple"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, b)
 	if err != nil {
 		return nil, err
 	}

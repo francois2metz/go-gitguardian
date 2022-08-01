@@ -4,10 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/Gaardsholt/go-gitguardian/types"
 )
 
 func (c *ScanClient) Quota() (*QuotaResult, error) {
-	req, err := c.client.NewRequest("GET", "/v1/quotas", nil)
+	endpoint := types.Endpoints["ScanQuotas"]
+	req, err := c.client.NewRequest(endpoint.Operation, endpoint.Path, nil)
 	if err != nil {
 		return nil, err
 	}
