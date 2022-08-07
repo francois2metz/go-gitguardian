@@ -6,9 +6,16 @@ jobs:
       - image: cimg/go:1.19
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-cache-{{ checksum "go.sum"  }}
       - run:
           name: "Go: Download"
           command: go mod download
+      - save_cache:
+          key: go-cache-{{ checksum "go.sum"  }}
+          paths:
+            - /usr/local/go
       - run:
           name: "Go: Test"
           command: |
