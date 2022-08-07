@@ -37,7 +37,7 @@ func Test_main(t *testing.T) {
 
 func checkIfPathIsThere(path string, operation string) bool {
 	for _, v := range types.Endpoints {
-		if v.Path == path && v.Operation == operation {
+		if v.GetApiPath() == path && v.Operation == operation {
 			return true
 		}
 	}

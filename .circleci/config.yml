@@ -1,0 +1,24 @@
+version: 2.1
+
+jobs:
+  test:
+    working_directory: ~/repo
+    docker:
+      - image: cimg/base:2022.07
+    steps:
+      - checkout
+      - run:
+          name: "Go: Download"
+          command: go mod download
+      - run:
+          name: "Go: Test"
+          command: |
+            go test -v ./...
+      - run:
+          name: "Go: Build"
+          command: go build
+
+workflows:
+  test:
+    jobs:
+      - test
