@@ -2,9 +2,8 @@ version: 2.1
 
 jobs:
   test:
-    working_directory: ~/repo
     docker:
-      - image: cimg/base:2022.07
+      - image: cimg/go:1.19
     steps:
       - checkout
       - run:
